@@ -2,6 +2,8 @@
 #include "display.h"
 #include <stdlib.h>  // For rand()
 #include <time.h>    // For seeding random numbers
+int checkCollision(uint16_t playerX, uint16_t playerY, uint16_t coinX, uint16_t coinY);
+void placeCoin();
 #define MAZE_BLOCK_COUNT 5
 #define SCREEN_WIDTH  128  // Set the screen width
 #define SCREEN_HEIGHT 154  // Set the screen height
@@ -49,6 +51,7 @@ const uint16_t dg1[]=
 	0,0,16142,16142,16142,16142,16142,16142,16142,16142,0,0,0,0,0,16142,16142,16142,16142,16142,16142,0,0,0,0,0,16142,16142,16142,16142,16142,16142,16142,16142,0,0,0,0,16142,16142,16142,1994,1994,16142,16142,16142,0,0,0,0,16142,16142,16142,1994,16142,1994,16142,16142,0,0,0,0,16142,16142,16142,1994,16142,1994,16142,16142,0,0,0,0,16142,16142,16142,1994,16142,1994,16142,16142,0,0,0,0,16142,16142,16142,1994,1994,16142,16142,16142,0,0,0,0,16142,16142,16142,16142,16142,16142,16142,16142,0,0,0,0,16142,16142,16142,1994,1994,1994,16142,16142,0,0,0,0,16142,16142,16142,1994,16142,16142,16142,16142,0,0,0,0,16142,16142,16142,1994,16142,16142,16142,16142,0,0,0,0,16142,16142,16142,1994,16142,1994,16142,16142,0,0,0,0,16142,16142,16142,1994,1994,1994,16142,16142,0,0,0,0,0,16142,16142,16142,16142,16142,16142,0,0,0,0,0,0,16142,16142,16142,16142,16142,16142,0,0,0,
 };
 
+
 int main()
 {
 	int hinverted = 0;
@@ -56,6 +59,9 @@ int main()
 	int toggle = 0;
 	int hmoved = 0;
 	int vmoved = 0;
+	srand(time(NULL)); // Use real-time seed if available
+	uint16_t rand_x = rand() % 118 + 1;
+	uint16_t rand_y = rand() % 150 + 1;
 	uint16_t x = 50;
 	uint16_t y = 50;
 	uint16_t oldx = x;
@@ -64,6 +70,7 @@ int main()
 	initSysTick();
 	setupIO();
 	putImage(20,80,12,16,dg1,0,0);
+	putImage(rand_x, rand_y, 20, 20, coin, 0, 0);
 	while(1)
 	{
 		hmoved = vmoved = 0;
@@ -106,9 +113,10 @@ int main()
 			}
 		}
 
-		if (checkCollision()) {
-            placeCoin();  // Move coin to a new position
-        }
+		if (checkCollision(x, y, rand_x, rand_y)) {
+			placeCoin();  // Move coin to a new position
+			putImage(rand_x, rand_y, 20, 20, coin, 0, 0);  // Redraw the coin at the new position
+		}
 
 		if ((vmoved) || (hmoved))
 		{
@@ -233,15 +241,20 @@ void setupIO()
 /*
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-void initRandom() {
-    srand(time(NULL));  // Seed the random number generator
+/*
+int rand_y = rand() % 150 + 1 ;
+int rand_x = rand() % 118 + 1 ;
+*/
+int checkCollision(uint16_t playerX, uint16_t playerY, uint16_t coinX, uint16_t coinY) {
+    // Check if the player's position overlaps with the coin's position
+    if (playerX + 20 > coinX && playerX < coinX + 20 &&
+        playerY + 20 > coinY && playerY < coinY + 20) {
+        return 1; // Collision detected
+    }
+    return 0; // No collision
 }
-
 void placeCoin() {
-    coin_x = (rand() % (SCREEN_WIDTH - 10)) + 5;  // Random x within bounds
-    coin_y = (rand() % (SCREEN_HEIGHT - 10)) + 5; // Random y within bounds
-}
-
-int checkCollision() {
-    return (x >= coin_x && x <= coin_x + 5 && y >= coin_y && y <= coin_y + 5);
+    // Place the coin at a new random position
+    rand_x = rand() % 118 + 1;
+    rand_y = rand() % 150 + 1;
 }
